@@ -55,12 +55,7 @@ async function updateUser(id, fields = {}) {
   } catch (error) {}
 }
 
-async function createPost({
-  authorId,
-  title,
-  content,
-  tags = [],
-}) {
+async function createPost({ authorId, title, content, tags = [] }) {
   try {
     const {
       rows: [post],
@@ -185,13 +180,15 @@ async function getPostById(postId) {
 
 async function updatePost(postId, fields = {}) {
   const { tags } = fields;
+  console.log(Object.keys(fields).length, "hELOOOOOOOOOOOOOOOOO");
+
   delete fields.tags;
   const setString = Object.keys(fields)
     .map((key, index) => {
       return `"${key}"=$${index + 1}`;
     })
     .join(", ");
-  const fieldsLength = Object.keys(fields).map(() => {}).length + 1;
+  const fieldsLength = Object.keys(fields).length + 1;
   try {
     if (setString.length > 0) {
       await client.query(
