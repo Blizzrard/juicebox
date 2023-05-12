@@ -1,6 +1,5 @@
-const { Client } = require("pg"); // imports the pg module
+const { Client } = require("pg");
 
-// supply the db name and location of the database
 const client = new Client({
   user: "postgres",
   password: "postgres",
@@ -60,7 +59,7 @@ async function createPost({
   authorId,
   title,
   content,
-  tags = [], // this is new
+  tags = [],
 }) {
   try {
     const {
@@ -185,20 +184,15 @@ async function getPostById(postId) {
 }
 
 async function updatePost(postId, fields = {}) {
-  // read off the tags & remove that field
-  const { tags } = fields; // might be undefined
+  const { tags } = fields;
   delete fields.tags;
-  console.log(fields);
-  // build the set string
   const setString = Object.keys(fields)
     .map((key, index) => {
-      console.log(key);
       return `"${key}"=$${index + 1}`;
     })
     .join(", ");
   const fieldsLength = Object.keys(fields).map(() => {}).length + 1;
   try {
-    // update any fields that need to be updated
     if (setString.length > 0) {
       await client.query(
         `
@@ -211,16 +205,13 @@ async function updatePost(postId, fields = {}) {
       );
     }
 
-    // return early if there's no tags to update
     if (tags === undefined) {
       return await getPostById(postId);
     }
 
-    // make any new tags that need to be made
     const tagList = await createTags(tags);
     const tagListIdString = tagList.map((tag) => `${tag.id}`).join(", ");
 
-    // delete any post_tags from the database which aren't in that tagList
     await client.query(
       `
       DELETE FROM post_tags
@@ -231,7 +222,6 @@ async function updatePost(postId, fields = {}) {
       [postId]
     );
 
-    // and create post_tags as necessary
     await addTagsToPost(postId, tagList);
 
     return await getPostById(postId);
@@ -319,7 +309,6 @@ async function getPostsByTagName(tagName) {
   }
 }
 
-// and export them
 module.exports = {
   client,
   getAllUsers,

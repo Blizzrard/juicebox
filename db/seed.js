@@ -162,7 +162,6 @@ async function rebuildDB() {
     await createTables();
     await createInitialUsers();
     await createInitialPosts();
-    // await createInitialTags();
   } catch (error) {
     throw error;
   }
@@ -170,34 +169,34 @@ async function rebuildDB() {
 
 async function testDB() {
   try {
-    //console.log("Starting to test database...");
+    console.log("Starting to test database...");
 
-    //console.log("Calling getAllUsers");
+    console.log("Calling getAllUsers");
     const users = await getAllUsers();
-    //console.log("Result:", users);
+    console.log("Result:", users);
 
-    //console.log("Calling updateUser on users[0]");
+    console.log("Calling updateUser on users[0]");
     const updateUserResult = await updateUser(users[0].id, {
       name: "Newname Sogood",
       location: "Lesterville, KY",
     });
-    //console.log("Result:", updateUserResult);
+    console.log("Result:", updateUserResult);
 
-    //console.log("Calling getAllPosts");
+    console.log("Calling getAllPosts");
     const posts = await getAllPosts();
-    //console.log("Result:", posts);
+    console.log("Result:", posts);
 
-    // console.log("Calling updatePost on posts[0]");
+    console.log("Calling updatePost on posts[0]");
     const updatePostResult = await updatePost(posts[0].id, {
       title: "New Title",
       content: "Updated Content",
     });
     console.log("Result:", updatePostResult);
 
-    //console.log("Calling getUserById with 1");
+    console.log("Calling getUserById with 1");
     const albert = await getUserById(1);
-    //console.log("Result:", albert);
-    //console.log("Calling updatePost on posts[1], only updating tags");
+    console.log("Result:", albert);
+    console.log("Calling updatePost on posts[1], only updating tags");
     const updatePostTagsResult = await updatePost(posts[1].id, {
       tags: ["#youcandoanything", "#redfish", "#bluefish"],
     });
@@ -209,7 +208,7 @@ async function testDB() {
 
     console.log("Finished database tests!");
   } catch (error) {
-    //console.log("Error during testDB");
+    console.log("Error during testDB");
     throw error;
   }
 }
