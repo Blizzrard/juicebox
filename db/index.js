@@ -5,12 +5,14 @@ const client = new Client({
   password: "postgres",
   database: "juicebox_dev",
 });
+const bcrypt = require("bcrypt");
 
 /**
  * USER Methods
  */
 
 async function createUser({ username, password, name, location }) {
+  const hash = await bcrypt.hash(password, 10);
   try {
     const {
       rows: [user],
@@ -21,7 +23,7 @@ async function createUser({ username, password, name, location }) {
       ON CONFLICT (username) DO NOTHING 
       RETURNING *;
     `,
-      [username, password, name, location]
+      [username, hash, name, location]
     );
 
     return user;
@@ -123,10 +125,11 @@ async function createPost({ authorId, title, content, tags = [] }) {
     `,
       [authorId, title, content]
     );
-
-    const tagList = await createTags(tags);
-
-    return await addTagsToPost(post.id, tagList);
+    console.log(tags);
+    if (tags[0] !== "") {
+      const tagList = await createTags(tags);
+      return await addTagsToPost(post.id, tagList);
+    }
   } catch (error) {
     throw error;
   }
@@ -224,6 +227,13 @@ async function getPostById(postId) {
     `,
       [postId]
     );
+
+    if (!post) {
+      throw {
+        name: "PostNotFoundError",
+        message: "Could not find a post with that postId",
+      };
+    }
 
     const {
       rows: [author],
@@ -406,4 +416,5 @@ module.exports = {
   addTagsToPost,
   getAllTags,
   getUserByUsername,
+  getPostById,
 };
