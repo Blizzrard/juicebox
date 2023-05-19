@@ -7,7 +7,7 @@ const { requireUser } = require("./utils");
 usersRouter.use((req, res, next) => {
   console.log("A request is being made to /users");
 
-  next(); // THIS IS DIFFERENT
+  next();
 });
 
 const {
@@ -16,6 +16,8 @@ const {
   createUser,
   updateUser,
   getUserById,
+  getPostsByUser,
+  updatePost,
 } = require("../db");
 
 usersRouter.get("/", async (req, res) => {
@@ -29,7 +31,6 @@ usersRouter.get("/", async (req, res) => {
 usersRouter.post("/login", async (req, res, next) => {
   const { username, password } = req.body;
 
-  // request must have both
   if (!username || !password) {
     next({
       name: "MissingCredentialsError",
@@ -41,7 +42,6 @@ usersRouter.post("/login", async (req, res, next) => {
     const user = await getUserByUsername(username);
 
     if (user && user.password == password) {
-      // create token & return to user
       const token = jwt.sign(
         { username: user.username, password: user.password, id: user.id },
         process.env.JWT_SECRET
@@ -102,13 +102,16 @@ usersRouter.post("/register", async (req, res, next) => {
 usersRouter.delete("/:userId", requireUser, async (req, res, next) => {
   try {
     const user = await getUserById(req.params.userId);
+    const posts = await getPostsByUser(req.user.id);
 
     if (user && user.id === req.user.id) {
       const updatedUser = await updateUser(user.id, { active: false });
+      if (posts) {
+        await posts.map((post) => updatePost(post.id, { active: false }));
+      }
 
       res.send({ user: updatedUser });
     } else {
-      // if there was a post, throw UnauthorizedUserError, otherwise throw PostNotFoundError
       next(
         user
           ? {
@@ -121,6 +124,16 @@ usersRouter.delete("/:userId", requireUser, async (req, res, next) => {
             }
       );
     }
+  } catch ({ name, message }) {
+    next({ name, message });
+  }
+});
+
+usersRouter.patch("/:userId", requireUser, async (req, res, next) => {
+  try {
+    const user = await getUserById(req.params.userId);
+    const updatedUser = await updateUser(user.id, { active: true });
+    res.send({ user: updatedUser });
   } catch ({ name, message }) {
     next({ name, message });
   }

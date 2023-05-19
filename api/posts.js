@@ -8,31 +8,35 @@ const client = new Client({
 
 const express = require("express");
 const postsRouter = express.Router();
-const { requireUser } = require("./utils");
+const { requireUser, requireActiveUser } = require("./utils");
 
-postsRouter.post("/", requireUser, async (req, res, next) => {
-  const { title, content, tags = "" } = req.body;
+postsRouter.post(
+  "/",
+  requireUser,
+  requireActiveUser,
+  async (req, res, next) => {
+    const { title, content, tags = "" } = req.body;
 
-  const tagArr = tags.trim().split(/\s+/);
-  const postData = {};
+    const tagArr = tags.trim().split(/\s+/);
+    const postData = {};
 
-  // only send the tags if there are some to send
-  if (tagArr.length) {
-    postData.tags = tagArr;
+    if (tagArr.length) {
+      postData.tags = tagArr;
+    }
+
+    try {
+      postData.authorId = req.user.id;
+      postData.title = title;
+      postData.content = content;
+      const post = await createPost(postData);
+      res.send({ post });
+    } catch ({ name, message }) {
+      next({ name, message });
+    }
   }
+);
 
-  try {
-    postData.authorId = req.user.id;
-    postData.title = title;
-    postData.content = content;
-    const post = await createPost(postData);
-    res.send({ post });
-  } catch ({ name, message }) {
-    next({ name, message });
-  }
-});
-
-postsRouter.patch("/:postId", requireUser, async (req, res, next) => {
+postsRouter.patch("/:postId", requireUser, requireActiveUser, async (req, res, next) => {
   const { postId } = req.params;
   const { title, content, tags } = req.body;
 
@@ -69,8 +73,7 @@ postsRouter.patch("/:postId", requireUser, async (req, res, next) => {
 
 postsRouter.use((req, res, next) => {
   console.log("A request is being made to /users");
-
-  next(); // THIS IS DIFFERENT
+  next();
 });
 
 postsRouter.delete("/:postId", requireUser, async (req, res, next) => {
@@ -82,7 +85,6 @@ postsRouter.delete("/:postId", requireUser, async (req, res, next) => {
 
       res.send({ post: updatedPost });
     } else {
-      // if there was a post, throw UnauthorizedUserError, otherwise throw PostNotFoundError
       next(
         post
           ? {
@@ -103,7 +105,6 @@ postsRouter.delete("/:postId", requireUser, async (req, res, next) => {
 postsRouter.get("/", async (req, res) => {
   try {
     const allPosts = await getAllPosts();
-    console.log("hi mike");
     const posts = await allPosts.filter((post) => {
       return post.active || (req.user && post.author.id === req.user.id);
     });
