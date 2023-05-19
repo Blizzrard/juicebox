@@ -1,10 +1,7 @@
 const { Client } = require("pg");
 const { DATABASE_URL, NODE_ENV } = process.env;
 
-const client = new Client(
-  process.env.DATABASE_URL
-    ? process.env.DATABASE_URL
-    : {
+const client = new Client({
         user: "postgres",
         password: "postgres",
         database: "juicebox_dev",
