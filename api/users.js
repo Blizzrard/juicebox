@@ -95,7 +95,11 @@ usersRouter.post("/register", async (req, res, next) => {
       token,
     });
   } catch ({ name, message }) {
-    next({ name, message });
+    next({
+      name: "Could not create user",
+      message:
+        "Please make sure you include username, password, name, and location",
+    });
   }
 });
 

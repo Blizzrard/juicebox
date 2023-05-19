@@ -138,7 +138,7 @@ async function createPost({ authorId, title, content, tags = [] }) {
 }
 
 async function updatePost(postId, fields = {}) {
-  const { tags } = fields; 
+  const { tags } = fields;
   delete fields.tags;
 
   const setString = Object.keys(fields)
