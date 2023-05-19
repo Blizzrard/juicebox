@@ -15,6 +15,7 @@ const {
   getUserByUsername,
   createUser,
   updateUser,
+  getUserById,
 } = require("../db");
 
 usersRouter.get("/", async (req, res) => {
